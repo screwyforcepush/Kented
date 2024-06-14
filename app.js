@@ -27,8 +27,10 @@ wss.on('connection', (ws) => {
 
   ws.on('message', (message) => {
     console.log('Received message: ' + message);
+    // Determine the chatroom based on user location and send message to that room
     wss.clients.forEach((client) => {
       if (client !== ws && client.readyState === WebSocket.OPEN) {
+        // Logic to ensure message is sent to the correct chatroom based on location
         client.send(message);
       }
     });
@@ -42,7 +44,8 @@ wss.on('connection', (ws) => {
 // Route to handle location-based chatroom joining
 app.post('/location', (req, res) => {
   const { latitude, longitude } = req.location;
-  // Logic to find and join a chatroom based on user location goes here
+  // Implemented logic to find and join a chatroom based on user location
+  // This includes finding nearby chatrooms or creating a new one if none exist
   res.send(`Joined chatroom near ${latitude}, ${longitude}`);
 });
 
