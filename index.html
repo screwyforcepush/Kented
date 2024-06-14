@@ -64,20 +64,37 @@
         }
 
         function showError(error) {
+            let errorMessage = "An error occurred.";
             switch(error.code) {
                 case error.PERMISSION_DENIED:
-                    console.error("User denied the request for Geolocation.");
+                    errorMessage = "User denied the request for Geolocation. Please enter your location manually.";
+                    const form = document.createElement('form');
+                    form.innerHTML = `
+                        <label for="latitude">Latitude:</label>
+                        <input type="text" id="latitude" name="latitude" required>
+                        <label for="longitude">Longitude:</label>
+                        <input type="text" id="longitude" name="longitude" required>
+                        <button type="submit">Submit</button>
+                    `;
+                    form.onsubmit = function(e) {
+                        e.preventDefault();
+                        const latitude = document.getElementById('latitude').value;
+                        const longitude = document.getElementById('longitude').value;
+                        showPosition({coords: {latitude: parseFloat(latitude), longitude: parseFloat(longitude)}});
+                    };
+                    document.body.appendChild(form);
                     break;
                 case error.POSITION_UNAVAILABLE:
-                    console.error("Location information is unavailable.");
+                    errorMessage = "Location information is unavailable.";
                     break;
                 case error.TIMEOUT:
-                    console.error("The request to get user location timed out.");
+                    errorMessage = "The request to get user location timed out.";
                     break;
                 case error.UNKNOWN_ERROR:
-                    console.error("An unknown error occurred.");
+                    errorMessage = "An unknown error occurred.";
                     break;
             }
+            console.error(errorMessage);
         }
 
         // Listen for updates on the list of active chatrooms
