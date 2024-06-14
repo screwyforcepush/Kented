@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kented - Location Based Chatrooms</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Welcome to Kented</h1>
+        <p>Join location-based chatrooms and connect with people nearby.</p>
+    </header>
+    <main>
+        <section>
+            <h2>Enter Your Location</h2>
+            <form id="locationForm">
+                <label for="latitude">Latitude:</label>
+                <input type="text" id="latitude" name="latitude" required>
+                <label for="longitude">Longitude:</label>
+                <input type="text" id="longitude" name="longitude" required>
+                <button type="submit">Find Chatrooms</button>
+            </form>
+        </section>
+        <section id="chatrooms">
+            <h2>Available Chatrooms</h2>
+            <!-- Chatrooms will be displayed here based on the user's location -->
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2023 Kented. All rights reserved.</p>
+    </footer>
+    <script src="app.js"></script>
+</body>
+</html>
