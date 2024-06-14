@@ -38,9 +38,9 @@ wss.on('connection', (ws) => {
           chatroom.messages = [];
         }
         chatroom.messages.push(parsedMessage.message);
-        // Broadcast the message to all members of the chatroom
+        // Broadcast the message to all members of the chatroom, including the sender
         chatroom.members.forEach(member => {
-          if (member.ws !== ws && member.ws.readyState === WebSocket.OPEN) {
+          if (member.ws.readyState === WebSocket.OPEN) {
             member.ws.send(JSON.stringify({ type: 'message', message: parsedMessage.message }));
           }
         });
