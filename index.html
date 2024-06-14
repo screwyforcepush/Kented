@@ -16,12 +16,20 @@
             <h2>Available Chatrooms</h2>
             <!-- Chatrooms will be displayed here based on the user's location -->
         </section>
+        <section id="chat">
+            <form id="messageForm">
+                <input type="text" id="messageInput" placeholder="Type a message...">
+                <button type="submit">Send</button>
+            </form>
+            <div id="messages"></div>
+        </section>
     </main>
     <footer>
         <p>&copy; 2023 Kented. All rights reserved.</p>
     </footer>
     <script>
         const chatroomsSection = document.getElementById('chatrooms');
+        let ws;
 
         function getLocation() {
             if (navigator.geolocation) {
@@ -60,8 +68,34 @@
 
         function joinChatroom(chatroomName) {
             console.log(`Joining ${chatroomName}...`);
-            // Implementation for joining a chatroom will go here
+            ws = new WebSocket('ws://localhost:3000');
+            ws.onopen = () => {
+                console.log('WebSocket connection established');
+                ws.send(JSON.stringify({type: 'join', chatroom: chatroomName}));
+            };
+            ws.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                if (data.type === 'message') {
+                    displayMessage(data.message);
+                } else if (data.type === 'activeChatrooms') {
+                    updateChatrooms(data.activeChatrooms);
+                }
+            };
         }
+
+        function displayMessage(message) {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.textContent = message;
+            messagesDiv.appendChild(messageDiv);
+        }
+
+        document.getElementById('messageForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const message = document.getElementById('messageInput').value;
+            ws.send(JSON.stringify({type: 'message', message: message}));
+            document.getElementById('messageInput').value = ''; // Clear input after sending
+        });
 
         function showError(error) {
             let errorMessage = "An error occurred.";
@@ -96,15 +130,6 @@
             }
             console.error(errorMessage);
         }
-
-        // Listen for updates on the list of active chatrooms
-        const ws = new WebSocket('ws://localhost:3000');
-        ws.onmessage = function(event) {
-            const data = JSON.parse(event.data);
-            if (data.type === 'activeChatrooms') {
-                updateChatrooms(data.activeChatrooms);
-            }
-        };
 
         getLocation();
     </script>
