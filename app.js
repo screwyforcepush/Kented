@@ -28,13 +28,24 @@ wss.on('connection', (ws) => {
 
   ws.on('message', (message) => {
     console.log('Received message: ' + message);
-    // Determine the chatroom based on user location and send message to that room
-    wss.clients.forEach((client) => {
-      if (client !== ws && client.readyState === WebSocket.OPEN) {
-        // Logic to ensure message is sent to the correct chatroom based on location
-        client.send(message);
+    const parsedMessage = JSON.parse(message);
+    if (parsedMessage.type === 'message') {
+      // Find the chatroom to which the message belongs
+      const chatroom = chatrooms.find(chatroom => chatroom.members.some(member => member.ws === ws));
+      if (chatroom) {
+        // Store the message in the chatroom's messages array
+        if (!chatroom.messages) {
+          chatroom.messages = [];
+        }
+        chatroom.messages.push(parsedMessage.message);
+        // Broadcast the message to all members of the chatroom
+        chatroom.members.forEach(member => {
+          if (member.ws !== ws && member.ws.readyState === WebSocket.OPEN) {
+            member.ws.send(JSON.stringify({ type: 'message', message: parsedMessage.message }));
+          }
+        });
       }
-    });
+    }
   });
 
   ws.on('close', () => {
@@ -45,6 +56,14 @@ wss.on('connection', (ws) => {
     });
     broadcastActiveChatrooms();
   });
+
+  // Send chat history to the client when they join a chatroom
+  ws.on('join', (chatroomName) => {
+    const chatroom = chatrooms.find(chatroom => chatroom.name === chatroomName);
+    if (chatroom && chatroom.messages) {
+      ws.send(JSON.stringify({ type: 'history', messages: chatroom.messages }));
+    }
+  });
 });
 
 // Route to handle location-based chatroom joining
@@ -54,7 +73,7 @@ app.post('/location', (req, res) => {
   let nearestChatroom = chatrooms.find(chatroom => geolocation.distance({lat: latitude, lon: longitude}, {lat: chatroom.latitude, lon: chatroom.longitude}) < 5000);
   if (!nearestChatroom) {
     const chatroomName = `Chatroom at ${latitude.toFixed(2)}, ${longitude.toFixed(2)}`;
-    nearestChatroom = { name: chatroomName, latitude, longitude, members: [] };
+    nearestChatroom = { name: chatroomName, latitude, longitude, members: [], messages: [] };
     chatrooms.push(nearestChatroom);
   }
   // Logic to add user to the nearest chatroom
