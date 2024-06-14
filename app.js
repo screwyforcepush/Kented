@@ -12,6 +12,16 @@ app.use(express.json()); // To parse JSON bodies
 
 let chatrooms = []; // Store chatrooms with their locations and names
 
+// Function to broadcast the updated list of active chatrooms
+function broadcastActiveChatrooms() {
+  const activeChatrooms = chatrooms.map(chatroom => chatroom.name);
+  wss.clients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify({ type: 'activeChatrooms', activeChatrooms }));
+    }
+  });
+}
+
 // WebSocket connection for real-time communication
 wss.on('connection', (ws) => {
   console.log('Client connected');
@@ -29,6 +39,11 @@ wss.on('connection', (ws) => {
 
   ws.on('close', () => {
     console.log('Client disconnected');
+    // Update chatroom members and broadcast active chatrooms on client disconnect
+    chatrooms.forEach(chatroom => {
+      chatroom.members = chatroom.members.filter(member => member.ws !== ws);
+    });
+    broadcastActiveChatrooms();
   });
 });
 
@@ -44,6 +59,8 @@ app.post('/location', (req, res) => {
   }
   // Logic to add user to the nearest chatroom
   nearestChatroom.members.push({ ws });
+  // Broadcast the updated list of active chatrooms whenever a new user joins
+  broadcastActiveChatrooms();
   res.json({ chatroom: nearestChatroom.name, activeChatrooms: chatrooms.map(chatroom => chatroom.name) });
 });
 

@@ -21,6 +21,8 @@
         <p>&copy; 2023 Kented. All rights reserved.</p>
     </footer>
     <script>
+        const chatroomsSection = document.getElementById('chatrooms');
+
         function getLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(showPosition, showError);
@@ -41,15 +43,24 @@
             })
             .then(response => response.json())
             .then(data => {
-                const chatroomsSection = document.getElementById('chatrooms');
-                chatroomsSection.innerHTML = ''; // Clear previous results
-                data.activeChatrooms.forEach(chatroomName => {
-                    const div = document.createElement('div');
-                    div.textContent = `Chatroom: ${chatroomName}`;
-                    chatroomsSection.appendChild(div);
-                });
+                updateChatrooms(data.activeChatrooms);
             })
             .catch(error => console.error('Error:', error));
+        }
+
+        function updateChatrooms(chatrooms) {
+            chatroomsSection.innerHTML = ''; // Clear previous results
+            chatrooms.forEach(chatroomName => {
+                const div = document.createElement('div');
+                div.textContent = `Chatroom: ${chatroomName}`;
+                div.onclick = () => joinChatroom(chatroomName);
+                chatroomsSection.appendChild(div);
+            });
+        }
+
+        function joinChatroom(chatroomName) {
+            console.log(`Joining ${chatroomName}...`);
+            // Implementation for joining a chatroom will go here
         }
 
         function showError(error) {
@@ -68,6 +79,15 @@
                     break;
             }
         }
+
+        // Listen for updates on the list of active chatrooms
+        const ws = new WebSocket('ws://localhost:3000');
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            if (data.type === 'activeChatrooms') {
+                updateChatrooms(data.activeChatrooms);
+            }
+        };
 
         getLocation();
     </script>
