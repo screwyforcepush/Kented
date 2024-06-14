@@ -77,6 +77,8 @@
                 const data = JSON.parse(event.data);
                 if (data.type === 'message') {
                     displayMessage(data.message);
+                } else if (data.type === 'history') {
+                    displayHistory(data.messages);
                 } else if (data.type === 'activeChatrooms') {
                     updateChatrooms(data.activeChatrooms);
                 }
@@ -88,6 +90,15 @@
             const messageDiv = document.createElement('div');
             messageDiv.textContent = message;
             messagesDiv.appendChild(messageDiv);
+        }
+
+        function displayHistory(messages) {
+            const messagesDiv = document.getElementById('messages');
+            messages.forEach(message => {
+                const messageDiv = document.createElement('div');
+                messageDiv.textContent = message;
+                messagesDiv.appendChild(messageDiv);
+            });
         }
 
         document.getElementById('messageForm').addEventListener('submit', function(e) {
