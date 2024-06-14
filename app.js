@@ -1,12 +1,16 @@
 const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
+const geolocation = require('geolocation-utils'); // For calculating distances based on coordinates
 
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
 app.use(express.static('public'));
+app.use(express.json()); // To parse JSON bodies
+
+let chatrooms = []; // Store chatrooms with their locations and names
 
 // WebSocket connection for real-time communication
 wss.on('connection', (ws) => {
@@ -30,10 +34,17 @@ wss.on('connection', (ws) => {
 
 // Route to handle location-based chatroom joining
 app.post('/location', (req, res) => {
-  const { latitude, longitude } = req.body; // Adjusted to directly use the body data
-  // Implemented logic to find and join a chatroom based on user location
-  // This includes finding nearby chatrooms or creating a new one if none exist
-  res.send(`Joined chatroom near ${latitude}, ${longitude}`);
+  const { latitude, longitude } = req.body;
+  // Find the nearest chatroom or create a new one if none are close enough
+  let nearestChatroom = chatrooms.find(chatroom => geolocation.distance({lat: latitude, lon: longitude}, {lat: chatroom.latitude, lon: chatroom.longitude}) < 5000);
+  if (!nearestChatroom) {
+    const chatroomName = `Chatroom at ${latitude.toFixed(2)}, ${longitude.toFixed(2)}`;
+    nearestChatroom = { name: chatroomName, latitude, longitude, members: [] };
+    chatrooms.push(nearestChatroom);
+  }
+  // Logic to add user to the nearest chatroom
+  nearestChatroom.members.push({ ws });
+  res.json({ chatroom: nearestChatroom.name, activeChatrooms: chatrooms.map(chatroom => chatroom.name) });
 });
 
 server.listen(3000, () => {
