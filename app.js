@@ -1,25 +1,12 @@
 const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
-const geolocation = require('geolocation');
 
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
 app.use(express.static('public'));
-
-// Middleware to check and handle geolocation data
-app.use((req, res, next) => {
-  if (req.method === 'POST' && req.path === '/location') {
-    const { latitude, longitude } = req.body;
-    if (!latitude || !longitude) {
-      return res.status(400).send('Location data is required');
-    }
-    req.location = { latitude, longitude };
-  }
-  next();
-});
 
 // WebSocket connection for real-time communication
 wss.on('connection', (ws) => {
@@ -43,7 +30,7 @@ wss.on('connection', (ws) => {
 
 // Route to handle location-based chatroom joining
 app.post('/location', (req, res) => {
-  const { latitude, longitude } = req.location;
+  const { latitude, longitude } = req.body; // Adjusted to directly use the body data
   // Implemented logic to find and join a chatroom based on user location
   // This includes finding nearby chatrooms or creating a new one if none exist
   res.send(`Joined chatroom near ${latitude}, ${longitude}`);
