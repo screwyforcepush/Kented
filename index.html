@@ -43,9 +43,9 @@
             .then(data => {
                 const chatroomsSection = document.getElementById('chatrooms');
                 chatroomsSection.innerHTML = ''; // Clear previous results
-                data.forEach(chatroom => {
+                data.activeChatrooms.forEach(chatroomName => {
                     const div = document.createElement('div');
-                    div.textContent = `Chatroom: ${chatroom.name} - ${chatroom.description}`;
+                    div.textContent = `Chatroom: ${chatroomName}`;
                     chatroomsSection.appendChild(div);
                 });
             })
