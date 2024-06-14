@@ -30,6 +30,31 @@
     <footer>
         <p>&copy; 2023 Kented. All rights reserved.</p>
     </footer>
-    <script src="app.js"></script>
+    <script>
+        document.getElementById('locationForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const latitude = document.getElementById('latitude').value;
+            const longitude = document.getElementById('longitude').value;
+            // Send location data to the server and handle the response to display available chatrooms
+            fetch('/location', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ latitude, longitude }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                const chatroomsSection = document.getElementById('chatrooms');
+                chatroomsSection.innerHTML = ''; // Clear previous results
+                data.forEach(chatroom => {
+                    const div = document.createElement('div');
+                    div.textContent = `Chatroom: ${chatroom.name} - ${chatroom.description}`;
+                    chatroomsSection.appendChild(div);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
 </body>
 </html>
